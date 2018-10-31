@@ -6,6 +6,11 @@
 Multi users chat,this simple application using python socket to handle the connection and using PyQt framework to create GUI for this app.To make secure data transformation i using Python cryptography with RSA technique to decrypt all message before sending between clients.
 
 ## Logs
+   * ver 1.1
+   
+    - Server side now, listing user who connected to it,
+      will appear on QTableWidget instead of QTreeWidget.
+   
    * ver 1.0
     
     - Tested on Arch linux.
