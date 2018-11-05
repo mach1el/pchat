@@ -24,7 +24,6 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_PSS
 
 signal.signal(signal.SIGINT,signal.SIG_DFL)
-signal.signal(signal.SIGPIPE,signal.SIG_DFL)
 
 marshall = pickle.dumps
 unmarshall = pickle.loads
@@ -135,6 +134,7 @@ class ChatRoom(QMainWindow):
 		self.actionExit.triggered.connect(self.close)
 
 	def backToHome(self):
+		client_socket.shutdown(socket.SHUT_RDWR)
 		client_socket.close()
 		self.close()
 		new_window = PchatWindow(self)
@@ -214,7 +214,7 @@ class ChatThread(Thread):
 						if not data:
 							self.window.textEdit.append(formatResult(color="red",text="Disconnected from server"))
 							self.window.pushButton.setEnabled(False)
-							#QCoreApplication.processEvents()
+
 						else:
 							try:
 								if 'PLAIN:' in data: data = data.strip('PLAIN:').strip()
@@ -232,7 +232,6 @@ class ChatThread(Thread):
 					except : pass
 
 			time.sleep(.1)
-			QCoreApplication.processEvents()
 		client_socket.close()
 
 class PchatWindow(QMainWindow):
