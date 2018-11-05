@@ -24,6 +24,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_PSS
 
 signal.signal(signal.SIGINT,signal.SIG_DFL)
+signal.signal(signal.SIGPIPE,signal.SIG_DFL)
 
 marshall = pickle.dumps
 unmarshall = pickle.loads
@@ -61,30 +62,30 @@ def kill_proc_tree(pid, including_parent=True):
 		parent.kill()
 
 def send(channel, *args):
-    buf = marshall(args)
-    value = socket.htonl(len(buf))
-    size = struct.pack("L",value)
-    #try:
-    channel.send(size)
-    channel.send(buf)
-    #except:
-    #	pass
+	buf = marshall(args)
+	value = socket.htonl(len(buf))
+	size = struct.pack("L",value)
+	#try:
+	channel.send(size)
+	channel.send(buf)
+	#except:
+	#	pass
 
 def receive(channel):
 
-    size = struct.calcsize("L")
-    size = channel.recv(size)
-    try:
-        size = socket.ntohl(struct.unpack("L", size)[0])
-    except struct.error as e:
-        return ''
+	size = struct.calcsize("L")
+	size = channel.recv(size)
+	try:
+		size = socket.ntohl(struct.unpack("L", size)[0])
+	except struct.error as e:
+		return ''
 
-    buf = ""
+	buf = ""
 
-    while len(buf) < size:
-        buf = channel.recv(size - len(buf))
+	while len(buf) < size:
+		buf = channel.recv(size - len(buf))
 
-    return unmarshall(buf)[0]
+	return unmarshall(buf)[0]
 
 class AddServerWindow(QDialog):
 	def __init__(self):
@@ -163,9 +164,20 @@ class ChatThread(Thread):
 
 	def updateRooms(self,rooms):
 		if rooms == {}:
-			status = QTreeWidgetItem(["No room avaiable"])
-			self.window.treeWidget.addTopLevelItem(status)
+			root = QTreeWidgetItem(self.window.treeWidget,['No rooms avaiable'])
 
+		else:
+			self.window.treeWidget.clear()
+			for n in rooms:
+				root = QTreeWidgetItem(self.window.treeWidget)
+				root.setText(0,n)
+				root.setFlags(root.flags())
+				for u in rooms[n]:
+					child = QTreeWidgetItem(root)
+					child.setText(0,u)
+					child.setFlags(child.flags())
+					
+			
 	def run(self):
 		element = self.host.split(":")
 		host = element[0]
@@ -202,32 +214,25 @@ class ChatThread(Thread):
 						if not data:
 							self.window.textEdit.append(formatResult(color="red",text="Disconnected from server"))
 							self.window.pushButton.setEnabled(False)
-							QApplication.processEvents()	
+							#QCoreApplication.processEvents()
 						else:
-							data = self.decryptor.decrypt(data)
-							data = data.decode("UTF-8")
-							self.window.textEdit.append(formatResult(color="#44dbe2",text=data))
+							try:
+								if 'PLAIN:' in data: data = data.strip('PLAIN:').strip()
+								data = self.decryptor.decrypt(data)
+								msg = data.decode("UTF-8")
+							except:
+								if type(data) == dict:
+									self.updateRooms(data)
+									msg = ""
+								else:
+									msg = data
+
+							if msg != "":
+								self.window.textEdit.append(formatResult(color="#44dbe2",text=msg))
 					except : pass
-				else:
-					msg = self.window.lineEdit.text()
-					if msg != "":
-						prompt = "[Me] > " + msg
-						msg = msg.encode()
-						msg = self.encryptor.encrypt(msg,0)
-						msg = msg[0]
-						signkey = self.decryptor
-						message_hash = SHA.new()
-						message_hash.update(msg)
 
-						signer = PKCS1_PSS.new(signkey)
-						signature = signer.sign(message_hash)
-						data = '%s#^[[%s' % (msg, signature)
-
-						send(client_socket,data)
-						self.window.textEdit.append(formatResult(text=prompt))
-						self.window.lineEdit.setText("")
-
-			time.sleep(0.1)
+			time.sleep(.1)
+			QCoreApplication.processEvents()
 		client_socket.close()
 
 class PchatWindow(QMainWindow):
