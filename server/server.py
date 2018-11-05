@@ -79,7 +79,7 @@ class ServerWindow(QMainWindow):
 		super(ServerWindow,self).__init__()
 		uic.loadUi(serverui,self)
 
-		self.host = "192.168.0.10"
+		self.host = host
 		self.port = port
 		self.clients = 0
 		self.STATE = True
