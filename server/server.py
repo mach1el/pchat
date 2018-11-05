@@ -79,7 +79,7 @@ class ServerWindow(QMainWindow):
 		super(ServerWindow,self).__init__()
 		uic.loadUi(serverui,self)
 
-		self.host = host
+		self.host = "192.168.0.10"
 		self.port = port
 		self.clients = 0
 		self.STATE = True
@@ -157,8 +157,7 @@ class ServerWindow(QMainWindow):
 
 				else: send(user.sock,"Welcome,to the #%s room" % room_name)
 
-			for o in self.client_map.keys(): 
-				send(o,self.rooms)
+			for o in self.client_map.keys(): send(o,self.rooms)
 
 		else: send(sock,"No such that room !!!")
 
@@ -297,8 +296,7 @@ class ServerWindow(QMainWindow):
 
 							if sock in self.client_map: del self.client_map[sock]
 
-							for o in self.outputs: 
-								send(o,self.rooms)
+							for o in self.outputs: send(o,self.rooms)
 
 							self.textEdit.append(formatResult
 								(
@@ -312,7 +310,6 @@ class ServerWindow(QMainWindow):
 						self.socket_list.remove(sock)
 						
 			time.sleep(.1)
-			QCoreApplication.processEvents()
 		self.server.close()
 		
 	def close_server(self):
