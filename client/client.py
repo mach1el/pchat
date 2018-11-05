@@ -64,11 +64,8 @@ def send(channel, *args):
 	buf = marshall(args)
 	value = socket.htonl(len(buf))
 	size = struct.pack("L",value)
-	#try:
 	channel.send(size)
 	channel.send(buf)
-	#except:
-	#	pass
 
 def receive(channel):
 
