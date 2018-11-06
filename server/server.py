@@ -161,6 +161,20 @@ class ServerWindow(QMainWindow):
 
 		else: send(sock,"No such that room !!!")
 
+	def leave_room(self,sock,user_name,room):
+		host = self.get_address(sock)
+		self.rooms[room].remove(user_name)
+
+		for user in self.room_map[room]:
+			if user.name == user_name and user.sock == sock:
+				self.room_map[room].remove(user)
+
+		self.textEdit.append(formatResult
+			(
+				color="#f99a34",text="User %s@%s:%d left #%s room" % (user_name,host[0],host[1],room)
+			)
+		)
+
 	def create_room(self,sock,data):
 		room_name = data.split()[1]
 
@@ -269,13 +283,19 @@ class ServerWindow(QMainWindow):
 									elif data.split()[0] == "-join": self.join_room(sock,data)
 
 								else:
-									dataparts = data.split('#^[[')
-									data = dataparts[0]
-									text = "[{0}] > {1}".format(user_name,data)
+									if data.split()[0] == "-leave":
+										self.leave_room(sock,user_name,room_name)
+										for o in self.room_map[room_name]:
+											self.send_encrypted(o.sock,"User %s left the room" % user_name,user_name)
 
-									for o in self.room_map[room_name]:
-										if o.sock != sock:
-											self.send_encrypted(o.sock,text,user_name)
+									else:
+										dataparts = data.split('#^[[')
+										data = dataparts[0]
+										text = "[{0}] > {1}".format(user_name,data)
+
+										for o in self.room_map[room_name]:
+											if o.sock != sock:
+												self.send_encrypted(o.sock,text,user_name)
 
 						else:
 							self.outputs.remove(sock)
