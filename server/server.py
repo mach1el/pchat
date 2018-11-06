@@ -175,6 +175,8 @@ class ServerWindow(QMainWindow):
 			)
 		)
 
+		for o in self.client_map.keys(): send(o,self.rooms)
+
 	def create_room(self,sock,data):
 		room_name = data.split()[1]
 
