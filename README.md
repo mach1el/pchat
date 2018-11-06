@@ -6,6 +6,10 @@
 Multi users chat,this simple application using python socket to handle the connection and using PyQt framework to create GUI for this app.To make secure data transformation i using Python cryptography with RSA technique to decrypt all message before sending between clients.
 
 ## Logs
+   * ver 1.5.1
+    
+    - Add leave room feature.
+   
    * ver 1.5
     
     - Add features create,join,leave room (leave room feature still in development)
